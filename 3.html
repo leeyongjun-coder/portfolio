@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>주민등록증 모바일 확인서비스</title>
+  <style>
+    body {
+      margin: 0;
+      background: #eef3fb;
+      font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 380px;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inner {
+      padding: 20px 20px 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .header-left img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+
+    .header-menu button {
+      font-size: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .photo {
+      width: 150px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 0;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .info-qr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 25px;
+      gap: 20px;
+    }
+
+    .info {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.6;
+      flex: 1;
+      margin-top: 10px;
+    }
+
+    .info span {
+      display: block;
+      font-weight: normal;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .info .location {
+      margin-top: 6px;
+    }
+
+    .qr {
+      width: 100px;
+      height: 100px;
+      border: none;
+      flex-shrink: 0;
+    }
+
+    .progress {
+      margin-top: 25px;
+      height: 4px;
+      background: #ddd;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #007bff;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    /* 여기 수정된 .time-left */
+    .time-left {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #007bff;
+      margin-top: 5px;
+      font-weight: 600;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .button {
+      background: #007bff;
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      border-radius: 0 0 20px 20px; /* 하단 둥근 모서리 */
+      cursor: pointer;
+    }
+
+    /* 상세정보 박스 */
+    .detail-box {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #007bff;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 999;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .detail-box.show {
+      transform: translateY(0);
+    }
+
+    .detail-content h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .detail-content p {
+      font-size: 18px;
+      margin: 6px 0;
+    }
+
+    .close-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: white;
+      color: #007bff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="inner">
+      <div class="header">
+        <div class="header-left">
+          <img src="정부24 로고.jpeg" alt="국회로고" />
+          <div>주민등록증 모바일 확인서비스</div>
+        </div>
+        <div class="header-menu">
+          <button onclick="alert('메뉴 클릭됨')">&#9776;</button>
+        </div>
+      </div>
+
+      <img src="이용준 증명사진.jpeg" alt="사진" class="photo" />
+
+      <div class="info-qr-row">
+        <div class="info">
+          이용준<br />
+          <span>04.02.25</span>
+          <span class="location">경기도 하남시</span>
+        </div>
+        <img id="qrCode" class="qr" alt="QR code" />
+      </div>
+
+      <div class="progress">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+      <!-- 수정된 부분 -->
+      <div class="time-left">
+        <span>남은시간</span>
+        <span><span id="time">30</span>초</span>
+      </div>
+
+      <div class="note">QR코드를 리더기에 스캔하세요</div>
+    </div>
+
+    <button class="button">상세정보 표시</button>
+  </div>
+
+  <script>
+    const qrData = "이름:이용준, 생일:04.02.25, 주소:경기도 하남시";
+    document.getElementById("qrCode").src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" + encodeURIComponent(qrData);
+
+    let timeLeft = 30;
+    const timer = document.getElementById("time");
+    const bar = document.getElementById("progressBar");
+
+    const interval = setInterval(() => {
+      timeLeft--;
+      timer.textContent = timeLeft;
+      bar.style.width = (timeLeft / 30) * 100 + "%";
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    document.querySelector(".button").addEventListener("click", () => {
+      document.getElementById("detailBox").classList.add("show");
+    });
+
+    function closeDetail() {
+      document.getElementById("detailBox").classList.remove("show");
+    }
+  </script>
+</body>
+</html>
